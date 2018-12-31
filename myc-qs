@@ -16,7 +16,7 @@ def run():
 	print('What would you like to search?')
 	search = input('>> ')
 
-	for d in domains: 
+	for d in domain_ext: 
 		if search.endswith(d) and len(search) > len(d): #Check if user included a valid domain extension.
 			if search.startswith('https://'): #Check for inclusion of https scheme.
 				url = search 

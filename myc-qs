@@ -1,35 +1,52 @@
 #!/usr/bin/python3
 
-'''Automatically opens user inputted site into web browser.
+'''myc-qs [-s] [site/search]
+   Automatically opens user inputted site into web browser.
+
+   Options:
+     -s 	Tells the program to treat every variable after it
+	 	as a search keyword.
 '''
 import webbrowser
 from urllib.parse import quote
 
+import sys #Allows user to enter variables from the terminal.
+
 __author__ = 'Brandon Phillips'
-__date__ = '12/30/2018'
-__version__ = '1.0'
+__date__ = '2019/02/09'
+__version__ = '1.1'
 
 def run():
 	domain_ext = ['.com','.ca','.org','.net','edu','.gov','.us'] #Set accepted domain extensuions.
-	url = '' #Initialize url as empty string. 
 
-	print('What would you like to search?')
-	search = input('>> ')
+	url = '' #Initialize url as empty string.
 
-	for d in domain_ext: 
+	if len(sys.argv) > 1:
+		if sys.argv[1] == '-s':
+			search = '' #Initialize.
+			for arg in sys.argv[1:]:
+				search = ('{0} {1}'.format(search, arg)) #Include every additional variable in search.
+			search = search.replace('-s','') #Remove option from created substring.
+		else:
+			search = sys.argv[1]
+
+	else: #Else; assume user did not enter a site variable.
+		print('What would you like to search?')
+		search = input('>> ')
+
+	for d in domain_ext:
 		if search.endswith(d) and len(search) > len(d): #Check if user included a valid domain extension.
 			if search.startswith('https://'): #Check for inclusion of https scheme.
-				url = search 
+				url = search
 			else: #Else; assume url is missing the https scheme.
-				url = 'https://' + search 
-			break 
+				url = 'https://' + search
+			break
 
 	if url == '': #If url is not a valid, assume that user wants to search instead.
 		url = 'https://duckduckgo.com/?q={}'.format(quote(search)) #Make search url-friendly.
-	
-	webbrowser.open(url) 
+
+	webbrowser.open(url)
 	print('Done!')
 
 if __name__ == '__main__':
 	run()
-	

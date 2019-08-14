@@ -1,0 +1,14 @@
+{
+  "Keywords": {
+    "FavCharacters": ["Batman", "Robin", "Superman", "Wonder", "Woman", "Aquaman", "Nightwing"],
+    "Colours": ["red","yellow","green","white","orange","grey","brown"],
+    "Animals": ["dog","cat", "hamster", "fish", "hedgehog", "bunny"],
+    "Food": ["pizza", "burger", "taco", "chicken", "fried", "sandwich", "sub", "poptart"],
+    "Interests": ["math", "science", "history", "physics"],
+    "Sports": ["golf","cricket","badminton","hockey","tennis"],
+    "Games": ["chess", "connect", "four", "checkers", "tic", "tac", "toe"]},
+
+  "Table": {
+    "Intab": "ABCDEFG",
+    "Outtab": "OEBXIE3" }
+}

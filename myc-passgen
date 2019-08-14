@@ -1,0 +1,254 @@
+#!/usr/bin/python3
+
+import os, sys, json
+from random import SystemRandom
+
+__author__ = 'Brandon Phillips'
+__date__ = '08/14/2019'
+__version__ = '1.0'
+
+HELP_MESSAGE = ('''   myc-passgen [-k [file]] [length] [comp] [-l [loops]] [-w [file]]
+
+   Generates a password for the user. Algorithm is designed to imitate
+   the way I make my own passwords by hand by vaguely incorporating
+   familiar words to help with memorization.
+
+   LENGTH refers to the length of the password. If the inclusion of
+   entire keywords exceed that length, the program will cut the extra
+   characters out automatically. The maximum size accepted is 30. (The
+   program will just set the length to 30 if it detects anything more).
+
+   If -k is supplied, it will check the argument immediately after for a .json
+   FILE name. If no FILE name is found, it will assume that the next argument
+   is the LENGTH. The .json FILE must be in the same directory as this module.
+   When including the file name make sure not to include the full directory name,
+   only the module.
+
+   The user has the option to specify the COMP(lexity) using a number
+   between 1-5. The number/5 is how likely keywords will be included
+   in the password. By default the complexity is 5. Note that complexity
+   must be specified if including any arguments after it (i.e. -l and -w)
+
+   If -l is supplied, the program will loop the password algorithm the number
+   of times specified by the user. The default is 1.
+
+   If -w is supplied, the program will write all passwords to a specified .txt
+   FILE. The program will otherwise display the generated password via print().
+
+   Options:
+     -k     Tells the program to include keywords from a .json file.
+            If the option is included the program will By default look
+            for a pass-keywords.json
+
+     -l     Tells the program to loop the algorithm and generate multiple
+            multiple passwords. If a number is not specified it will just
+            loop once.
+
+     -w     Tells the program to write the passwords into a flat
+            text file. If a file name is not defined it will just
+            write to a myc-passwords.txt by default.
+
+    Expected .json file format:
+
+    "Keywords": {
+        "category": [keyword1, keyword2, etc... ]
+    }
+    "Table": {
+        "intab": "ASEVB"
+        "outtab": "@$3^8"
+    }
+''')
+
+DEFAULT_JSON = 'pass-keywords.json'
+DEFAULT_TXT = 'myc-passwords.txt'
+
+def writeToFile(file, string):
+    string = str(string) #Ensure proper format.
+    with open(file, 'a') as f:
+        f.write(string + ' \n')
+
+def loadJson(file):
+    with open(file, 'r') as json_file:
+        newfile = json.load(json_file)
+        return newfile
+
+def castToPositiveInt(integer):
+    ''' Function is similar to standard int casting except that it will convert
+        any detected negative integer to its positive equivalent.
+    '''
+    integer = int(integer)
+    if integer < 0:
+        integer = integer * -1
+    return integer
+
+def padRandomLetters(string):
+    rng = SystemRandom()
+    alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWYXZ'
+    string = string + alphabet[rng.randint(0,25)]
+    return string
+
+def addKeywordToPassword(string, string_length, keyword_file, comp):
+    rng = SystemRandom()
+    categories_list = list(keyword_file['Keywords'].keys())
+    for i in range(string_length//6): #6 was selected because it makes it unlikely for smaller passwords to have keywords.
+        if rng.randint(comp,5) == comp and len(string) < string_length:
+            index = rng.randint(0, len(categories_list)-1)
+            category = categories_list[index] #Randomize a category.
+            index = rng.randint(0, len(keyword_file['Keywords'][category])-1)
+            keyword = keyword_file['Keywords'][category][index] #Randomize a keyword.
+            string = string + str(keyword) #Add keyword to password.
+
+    if len(string) > string_length: #Check if password exceeds the user's set length.
+        string = string[:string_length] #Shorten password by cutting at the length limit.
+    elif len(string) < string_length:
+        while len(string) < string_length:
+            string = padRandomLetters(string)
+    return string
+
+def addRandomCharsToPassword(string, string_list, string_length):
+    rng = SystemRandom()
+    SYMBOLS = '#@%$!?'
+    previous_index = [] #Keep track of previous positions so already placed numbers aren't written over.
+    string_index = rng.randint(0, string_length-1) #Randomize first position in string to replace.
+    for i in range(string_length//2): #Will repeat for half the length so at most only half the password will be symbols.
+        while string_index in previous_index:
+            string_index = rng.randint(0, string_length-1) #Randomize a position in string.
+        previous_index.append(string_index) #Store position.
+        if rng.randint(1,2) == 1: #1/2 chance of number/symbol being added at this position.
+            if rng.randint(1,2) == 1: #1/2 chance of number being added.
+                string_list[string_index] = str(rng.randint(0,9))
+            else: #1/2 chance of symbol being added.
+                string_list[string_index] = SYMBOLS[rng.randint(0,len(SYMBOLS)-1)]
+    return string_list
+
+def randomizeCapitals(string):
+    rng = SystemRandom()
+    string = string.lower()
+    string_list = list(string) #Create temporary list for item assignment
+    for x in range(len(string_list)):
+        if rng.randint(1,2) == 1:
+            string_list[x] = string_list[x].upper()
+    return convertListToString(string_list)
+
+def randomlyTranslate(string, intab, outtab):
+    ''' Function is similar to the standard str.translate() function except
+        that the translation itself is semi-random for each
+        individual character.
+    '''
+    rng = SystemRandom()
+    CHANCE = 2 #Probability denominator.
+    new_string = ''
+
+    for i in range(len(string)):
+        char = string[i]
+        if char.upper() in intab and rng.randint(1,CHANCE) == 1:
+            char_index = intab.index(char)
+            new_string = new_string + outtab[char_index]
+        else:
+            new_string = new_string + char
+    return new_string
+
+def convertListToString(list):
+    newstring = ''
+    for i in list:
+        newstring = newstring + i
+    return newstring
+
+def main(*args):
+    '''Contains input parsing and password generation.
+        main() function always assumes the first argument is the
+        help message string and the second is the default .json file
+        name (also in string) to look for.
+    '''
+
+    HELP_MESSAGE = args[0]
+    DEFAULT_JSON = args[1]
+    DEFAULT_TXT = args[2]
+    DEFAULT_DIR = os.path.dirname(os.path.abspath(__file__)) #Get the directory of this module.
+
+    keyword_file = None
+    use_keywords = False
+    write_to_file = False
+    loop_count = 1
+    #Parsing input.
+    if len(sys.argv) > 1:
+        if sys.argv[1].upper() == 'HELP':
+            print(HELP_MESSAGE)
+        else:
+            length_index = 1 #Reference index for later.
+            if sys.argv[1] == '-k' and sys.argv[2].endswith('.json'):
+                keyword_file_name = os.path.join(DEFAULT_DIR,sys.argv[2])
+                length_index = 3
+                use_keywords = True
+            else:
+                keyword_file_name = os.path.join(DEFAULT_DIR,DEFAULT_JSON)
+                if sys.argv[1] == '-k': #Assume that sys.argv[2] must be the length.
+                    length_index = 2
+                    use_keywords = True
+
+            try:
+                pass_length = castToPositiveInt(sys.argv[length_index])
+                if pass_length > 30: #Set the maximum size to 30.
+                    pass_length = 30
+            except ValueError:
+                print('The length could not be casted into an int. Detected length: {}'.format(sys.argv[length_index]))
+                return
+
+            #Check for complexity argument (length index + 1 for next index, + 1 for size).
+            if len(sys.argv) >= length_index + 2:
+                try:
+                    pass_comp = castToPositiveInt(sys.argv[length_index+1])
+                except ValueError:
+                    print('The complexity could not be casted into an int. Detected complexity: {}'.format(sys.argv[length_index+1]))
+                    return
+            else:
+                pass_comp = 3
+
+            #Check for any other arguments argument (length index + 1 for next index, + 1 for size).
+            if len(sys.argv) > (length_index + 2):
+                if '-w' in sys.argv[length_index+2:]:
+                    write_to_file = True
+                    text_file = 'myc-passwords.txt'
+                    write_index = sys.argv.index('-w')
+                    if sys.argv[write_index+1].endswith('.txt'):
+                        text_file = sys.argv[write_index+1]
+
+                if '-l' in sys.argv[length_index+2:]:
+                    loop_index = sys.argv.index('-l')
+                    try:
+                        loop_count = castToPositiveInt(sys.argv[loop_index+1])
+                    except ValueError:
+                        print('The number of loops could not be casted to an int. Detected loop count: {}'.format(sys.argv[loop_index+1]))
+                        return
+
+            #Generate password.
+            for i in range(loop_count):
+                password = ''
+                if use_keywords == True:
+                    #Grab file data.
+                    try:
+                        keyword_file = loadJson(keyword_file_name)
+                    except Exception as e:
+                        print('Program could not load json file. Detected file: {}'.format(keyword_file_name))
+                        print(e)
+                        return
+                    password = addKeywordToPassword(password, pass_length, keyword_file, pass_comp)
+                    password = randomizeCapitals(password)
+                else:
+                    while len(password) < pass_length:
+                        password = padRandomLetters(password)
+
+                password_list = list(password) #Create clone of password in list format so item assignment is supported.
+                password_list = addRandomCharsToPassword(password, password_list, pass_length)
+                password = convertListToString(password_list)
+
+                if write_to_file == True:
+                    writeToFile(text_file, password)
+                else:
+                    print(password)
+
+    else:
+        print('No valid arguments detected. Try the command \'myc-passgen help\' for a more detailed explanation.')
+
+if __name__ == '__main__':
+    main(HELP_MESSAGE, DEFAULT_JSON, DEFAULT_TXT)

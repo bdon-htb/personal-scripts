@@ -49,7 +49,7 @@ def shunting_yard(s: list) -> str:
         if c.isdigit():
             output += ' ' + c
         elif c in OPERANDS:
-            if operator_stack and not (operator_stack[-1] in PARENTHESIS) and \
+            if operator_stack and operator_stack[-1] in OPERANDS and \
                 OPERANDS[c] <= OPERANDS[operator_stack[-1]]:
                 output += ' ' + operator_stack.pop()
             operator_stack.append(c)
@@ -79,8 +79,8 @@ def calculate(s: str) -> float:
 def main():
     s = input('Expression: ')
     s = extract_data(s)
-    print(s)
-    print(shunting_yard(s))
+    print('Extracted Data: ', s)
+    print('Output: ', shunting_yard(s))
 
 if __name__ == '__main__':
     main()

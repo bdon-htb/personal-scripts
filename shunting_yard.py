@@ -66,16 +66,6 @@ def shunting_yard(s: list) -> str:
 
     return output.strip()
 
-def calculate(s: str) -> float:
-    """Calculate an expression in reverse polish notation.
-    """
-    # TODO: Implement.
-    s = s.split(' ')
-    for index in range(len(s)):
-        if s[index] in OPERANDS:
-            pass
-    return
-
 def main():
     s = input('Expression: ')
     s = extract_data(s)

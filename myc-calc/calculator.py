@@ -1,65 +1,13 @@
-class Operator:
-    """Contains all necessary attributes and functionalities of a basic
-    operator.
+from typing import Union
+import operators as op
 
-    name is the name of the operator. precendence is the assigned value for
-    the shunting_yard algorithm's ordering. left_assoc describes the operators
-    associativity (True for left, False for right).
+# Dictionary format: Operator character: custom Operator object.
+OPERATORS = {'+': op.Addition(),
+            '-': op.Subtraction(),
+            '*': op.Multiplication(),
+            '/': op.Division()}
 
-    --Attribute Type--
-    name: str
-    precendence: int
-    left_assoc: bool
-    ------------------
-    """
-    def __init__(self, name = None, precendence = 0, left_assoc = True):
-        self.name = name
-        self.precendence = precendence
-        self.left_assoc = left_assoc
-
-    def execute(self, x, y):
-        pass
-
-class Addition(Operator):
-    def __init__(self):
-        super().__init__(self, 'add', 0)
-
-    def execute(self, x, y):
-        return x + y
-
-class Subtraction(Operator):
-    def __init__(self):
-        super().__init__(self, 'subtract', 0)
-
-    def execute(self, x, y):
-        return x - y
-
-class Multiplication(Operator):
-    def __init__(self):
-        super().__init__(self, 'multiply', 1)
-
-    def execute(self, x, y):
-        return x * y
-
-class Division(Operator):
-    def __init__(self):
-        super().__init__(self, 'divide', 2)
-
-    def execute(self, x, y):
-        try:
-            return x / y
-        except ZeroDivisionError:
-            raise ZeroDivisionError # Kinda redundant, but good to have.
-
-
-# Dictionary format: Operand character: Precendence value
-# The higher the value, the more precendence it has.
-OPERATORS = {'+':0,
-            '-':0,
-            '*':1,
-            '/':1}
-
-# PARENTHESIS = ['(', ')']
+PARENTHESIS = ['(', ')']
 
 operator_stack = []
 output = ''
@@ -73,16 +21,16 @@ def extract_data(s: str) -> list:
     L = []
     start = 0
     for index in range(len(s)):
-        if s[index] in PARENTHESIS:
+        if s[index] == '(':
             L.append(s[index])
             if index + 1 > len(s):
                 start = index
             else:
                 start = index + 1
-        elif s[index] in OPERATORS:
+        elif s[index] in OPERATORS or s[index] == ')':
             L.append(s[start:index])
             L.append(s[index])
-            if index + 1 > len(s): # This should never be the case unless theres a user error.
+            if index + 1 > len(s):
                 start = index
             else:
                 start = index + 1
@@ -120,27 +68,31 @@ def shunting_yard(s: list) -> str:
 
     return output.strip()
 
-def calculate(s: str) -> float:
+def calculate(s: str) -> Union[float, int]:
     """Calculate an expression in reverse polish notation.
+    Precondition: Expression is valid.
     """
-    # TODO: Implement.
     s = s.split(' ') # Tokenize string.
     index = 0
-    operator_stack = []
-    operand_stack
-    while s:
-        if index > len(s):
-            index = 0 # Reset back to front of list.
-        if s[index] in OPERATORS:
-            operator_stack.append(s[index])
+    operand_stack = []
+    while index < len(s):
+        if s[index].isdigit():
+            operand_stack.append(int(s[index]))
+        elif s[index] in OPERATORS:
+            operator = OPERATORS[s[index]]
+            x = operand_stack[-2]
+            y = operand_stack[-1]
+            operand_stack = operand_stack[:-2] + [operator.execute(x,y)] # cut down list.
 
-    return
+        index += 1
+    return operand_stack[0]
 
 def main():
     s = input('Expression: ')
     s = extract_data(s)
     print('Extracted Data: ', s)
     print('Output: ', shunting_yard(s))
+    print('Calculated: ', calculate(shunting_yard(s)))
 
 if __name__ == '__main__':
     main()

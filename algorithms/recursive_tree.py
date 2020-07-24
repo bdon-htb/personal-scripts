@@ -1,5 +1,5 @@
 class Tree:
-    """A recursive implementation of a binary tree data structure.
+    """A recursive implementation of a simple tree data structure.
     Instead of a class for a Node AND a class for the Tree.
     They will be combined into one class. Nodes can be represented as
     subtrees.
@@ -7,19 +7,73 @@ class Tree:
     root is the root node of the tree/subtree. It will only contain a
     value.
 
-    subtrees is a list of conected subtrees to the root node.
+    subtrees is a list of all subtrees of this tree.
+
+    General recursive traversal template for Tree:
+    def foo(self):
+        if self.is_empty(): <- base case.
+            ...
+        else:
+            ...
+            for subtree in self.subtrees: <- recursive case.
+                subtree.foo()
+            ...
     """
 
-    def __init__(self, root, subtrees):
+    def __init__(self, root, subtrees=[]):
+        """Initialize a new tree.
+
+        Precondition: if root is None, thn there are no subtrees
+        """
         self.root = root
         self.subtrees = subtrees
 
-    def is_empty():
+    def is_empty(self):
+        """Return whether this tree is empty.
+        """
         return self.root is None
 
     def __len__(self):
+        """Return the the total number of items in this tree.
+        """
         if self.is_empty():
             return 0
         else:
-            return
-        pass
+            size = 1 # Initialize. Include root.
+            for subtree in self.subtrees:
+                size += len(subtree)
+            return size
+
+    def __str__(self):
+        if self.is_empty():
+            return None
+        else:
+            s = f'{self.root}\n'
+            for subtree in self.subtrees:
+                s += str(subtree)
+            return s
+
+    def str_indented(self, depth=0):
+        if self.is_empty():
+            return None
+        else:
+            s = ' ' * depth + f'{self.root}\n'
+            for subtree in self.subtrees:
+                s += subtree.str_indented(depth + 1)
+            return s
+
+def main():
+    t1 = Tree(None, [])
+    # 0
+    print(f'Size of t1: {len(t1)}')
+    t2 = Tree(5, [Tree(8), Tree(11), Tree(12, [Tree(4)]), Tree(24)])
+    print(f't2:\n{t2}')
+    print(f't2 indented:\n{t2.str_indented()}')
+    # 5.
+    print(f'Size of t2: {len(t2)}')
+    t3 = Tree(5)
+    # 1
+    print(f'Size of t3: {len(t3)}')
+
+if __name__ == '__main__':
+    main()

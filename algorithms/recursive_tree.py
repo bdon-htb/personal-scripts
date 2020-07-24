@@ -62,6 +62,25 @@ class Tree:
                 s += subtree.str_indented(depth + 1)
             return s
 
+    def __contains__(self, value):
+        """Return True if the value is in the tree, and
+        False otherwise.
+        """
+        if self.root == value:
+            return True
+        else:
+            result = False
+            for subtree in self.subtrees:
+                if result == False:
+                    result = value in subtree
+        return result
+
+    def delete_item(self, item):
+        """Delete the first occurrence of item in the tree.
+        """
+        # TODO: Implement.
+        pass
+
 def main():
     t1 = Tree(None, [])
     # 0
@@ -69,6 +88,7 @@ def main():
     t2 = Tree(5, [Tree(8), Tree(11), Tree(12, [Tree(4)]), Tree(24)])
     print(f't2:\n{t2}')
     print(f't2 indented:\n{t2.str_indented()}')
+    print(4 in t2)
     # 5.
     print(f'Size of t2: {len(t2)}')
     t3 = Tree(5)

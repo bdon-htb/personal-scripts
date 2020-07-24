@@ -1,7 +1,7 @@
 import random
 
 class BinaryTree:
-    '''A binary tree. The binary tree contains a series
+    """A binary tree. The binary tree contains a series
     of nodes where each node can have at most two children.
 
     values is an (unordered) list of numbers that the nodes
@@ -11,7 +11,7 @@ class BinaryTree:
     the topic and started from there. I only looked at code for method ideas.
     I opted for while loops instead of recursion just because I was more
     comfortable with it.
-    '''
+    """
 
     def __init__(self, values):
         if len(values) > 0:
@@ -22,12 +22,12 @@ class BinaryTree:
             self.root = Node()
 
     def display(self, node='root'):
-        '''Display the binary tree with an inorder printing algorithm.
+        """Display the binary tree with an inorder printing algorithm.
 
         NOTE: Not gonna lie, I pretty much cheated for this one. I mostly just wanted
         to see if my implementation is correct. According to the video I followed it is.
         (because it always prints in order).
-        '''
+        """
         if node == 'root':
             node = self.root
 
@@ -74,9 +74,9 @@ class BinaryTree:
         return found
 
 class Node():
-    '''A single node of a binary tree. For any given node
+    """A single node of a binary tree. For any given node
     with two child nodes, left_child < right_child.
-    '''
+    """
 
     def __init__(self, value=None):
         self.value = value

@@ -1,5 +1,5 @@
 class Tree:
-    """A recursive implementation of a tree data structure.
+    """A recursive implementation of a binary tree data structure.
     Instead of a class for a Node AND a class for the Tree.
     They will be combined into one class. Nodes can be represented as
     subtrees.

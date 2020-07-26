@@ -28,12 +28,12 @@ class Tree:
         self.root = root
         self.subtrees = subtrees
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         """Return whether this tree is empty.
         """
         return self.root is None
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the the total number of items in this tree.
         """
         if self.is_empty():
@@ -44,7 +44,7 @@ class Tree:
                 size += len(subtree)
             return size
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.is_empty():
             return None
         else:
@@ -53,7 +53,7 @@ class Tree:
                 s += str(subtree)
             return s
 
-    def str_indented(self, depth=0):
+    def str_indented(self, depth=0) -> str:
         if self.is_empty():
             return None
         else:
@@ -62,7 +62,7 @@ class Tree:
                 s += subtree.str_indented(depth + 1)
             return s
 
-    def __contains__(self, value):
+    def __contains__(self, value) -> bool:
         """Return True if the value is in the tree, and
         False otherwise.
         """
@@ -75,11 +75,20 @@ class Tree:
                     result = value in subtree
         return result
 
-    def delete_item(self, item):
+    def delete_item(self, item) -> bool:
         """Delete the first occurrence of item in the tree.
+        If the item has subtrees, those will also be deleted.
         """
-        # TODO: Implement.
-        pass
+        if self.is_empty(): # Empty case.
+            return False
+        elif self.root == item:
+            return True
+        else:
+            for subtree in self.subtrees:
+                deleted = subtree.delete_item(item)
+                if deleted:
+                    self.subtrees.remove(subtree)
+            return False
 
 def main():
     t1 = Tree(None, [])
@@ -93,7 +102,9 @@ def main():
     print(f'Size of t2: {len(t2)}')
     t3 = Tree(5)
     # 1
-    print(f'Size of t3: {len(t3)}')
+    print(f'Size of t3: {len(t3)}\n')
+    t2.delete_item(12)
+    print(f't2 with 12 removed:\n{t2.str_indented()}')
 
 if __name__ == '__main__':
     main()

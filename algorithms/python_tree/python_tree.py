@@ -1,7 +1,7 @@
 from typing import TextIO, Dict, Union
 # Includes functionality to convert a python file into a CodeTree.
-# Designed for a separate project that will likely not be posted in this
-# account's repo.
+# Designed for a separate project that will likely not be posted on this
+# account.
 
 # ==============
 # Custom Classes

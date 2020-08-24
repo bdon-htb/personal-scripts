@@ -1,4 +1,7 @@
 from typing import TextIO, Dict, Union
+# Includes functionality to convert a python file into a CodeTree.
+# Designed for a separate project that will likely not be posted in this
+# account's repo.
 
 # ==============
 # Custom Classes
@@ -52,7 +55,7 @@ class CodeTree:
                 location = url_list[index]
                 if node.next.get(location):
                     node = node.next[location]
-                else: # Location doesn't exist.)
+                else: # Location doesn't exist.
                     return None
         return item
 
@@ -99,7 +102,7 @@ class Node:
         self.next[next.name] = next
 
 # ===============
-# General Methods
+# Methods
 # ===============
 def is_comment(s: str) -> bool:
     """Return whether s is a python comment or not.

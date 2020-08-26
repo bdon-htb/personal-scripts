@@ -1,4 +1,4 @@
-from typing import TextIO, Dict, Union
+from typing import TextIO, Dict, Union, Tuple
 # Includes functionality to convert a python file into a CodeTree.
 # Designed for a separate project that will likely not be posted on this
 # account.
@@ -37,9 +37,9 @@ class CodeTree:
                 node = node.next[next_location]
                 index += 1
 
-    def get_item(self, url: str) -> Union[str, None]:
-        """Get the content at the given url. If the url endpoint is
-        empty or doesn't exist return None.
+    def get_node(self, url: str) -> Union[str, None]:
+        """Get the node at the given url. If the url endpoint
+        doesn't exist return None.
         """
         node = self.root
         item = None
@@ -48,7 +48,7 @@ class CodeTree:
         index = 0
         while index <= len(url_list) - 1:
             if url == node.url:
-                item = node.content if node.content != '' else None
+                return node
                 index += 1
             else:
                 index += 1
@@ -58,6 +58,16 @@ class CodeTree:
                 else: # Location doesn't exist.
                     return None
         return item
+
+    def get_content(self, url: str) -> Union[str, None]:
+        """Get the content of the Node at the given url. If the url endpoint is
+        empty or doesn't exist return None.
+        """
+        content = None
+        node = self.get_node(url)
+        if node is not None:
+            content = node.content if node.content != '' else content # If the string is empty return None.
+        return content
 
     def pretty_print(self):
         """Recursively print all the nodes in the current CodeTree.
@@ -115,7 +125,7 @@ def is_code(s: str) -> bool:
     - It's NOT an empty line.
     - It's NOT a line consisting of only comments.
     """
-    return not s.isspace() and not is_comment(s)
+    return not len(s) == 0 and not is_comment(s)
 
 def is_block(s: str) -> str:
     """Return whether s is a class or function definition
@@ -140,19 +150,37 @@ def indent_len(s: str) -> int:
     """
     return len(s) - len(s.lstrip())
 
-def update_url(url, current_block, indent, last_indent):
+def trim_url(url: str, n: int) -> str:
+    """Return [url] with the last [n] locations / endpoints removed.
+
+    Precondition: n is a positive integer.
+    """
+    return '/'.join(url.split('/')[:-n])
+
+def update_url(url: str, current_block: str, indent: int, last_indent: int) -> str:
+    """Update the parser's codetree url. Where [url] is the current url, [current_block]
+    is the name of the current block being parsed, [indent] is the current line's
+    indentation and [last_indent] is the previous line's indentaiton.
+    """
     if len(url.split('/')) == 1: # If at root location.
         url += '/' # Add forward slash so the splitting works properly.
 
     if indent < last_indent: # The current indentation is less. Which means we're moving up the url.
         # Move up and replace endpoint.
-        url = '/'.join(url.split('/')[:-2]) # Remove last endpoint and block above.
+        url = trim_url(url, 2) # Remove last endpoint and block above.
     elif indent == last_indent: # The indentation has not changed.
-        url = '/'.join(url.split('/')[:-1]) # Remove endpoint.
+        url = trim_url(url, 1) # Remove endpoint.
 
     # If the current indentation is greater we're moving down the url. Just add.
     url += '/' + current_block # Make current_block new endpoint.
     return url
+
+def update_line_data(indent: int) -> Tuple[str, int]:
+    """Shorthand function for
+    code_lines = ''
+    last_indent = indent
+    """
+    return '', indent
 
 def make_file_tree(filename: str) -> 'FileTree':
     """Create a CodeTree from a python file.
@@ -175,19 +203,27 @@ def make_file_tree(filename: str) -> 'FileTree':
                     default_indent = indent
                     have_default = True
 
-                if is_block(line):
+                if is_block(line): # If line is a block; function or class declaration.
                     tree.insert(url, code_lines) # Insert the previous block's code.
                     current_block = get_block_name(line)
                     url = update_url(url, current_block, indent, last_indent) # Update the url to the current block's
-                    code_lines = '' # Empty code_lines
-                    last_indent = indent # Update indentation
-                else:
+                    code_lines, last_indent = update_line_data(indent) # Empty code_lines and update indentation.
+
+                else: # Else; line is just regular code.
+                    if indent < last_indent: # Indentation moved up, which means the url should update.
+                        tree.insert(url, code_lines) # Insert the previous block's code.
+                        code_lines, last_indent = update_line_data(indent) # Empty code_lines and update indentation.
+                        level = ((last_indent - indent) // default_indent) # Calculate the number of indentation 'levels' it went up
+                        url = trim_url(url, level * 2) # Trim the url.
+                        current_block = url.split('/')[-1] # Set the current block to be the new endpoint.
+
                     code_lines += line + '\n' # Add line of code to current blocks.
 
         tree.insert(url, code_lines) # Insert any leftover code.
     return tree
 
 if __name__ == '__main__':
-    t = make_file_tree('test_code.py')
+    filename = 'test_code.py'
+    t = make_file_tree(filename)
     t.pretty_print()
-    print(t.get_item('test_code.py/M/argh'))
+    # print(t.get_content(filename))

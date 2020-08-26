@@ -7,3 +7,5 @@ class M:
 
     def argh(self):
         print('Argh!')
+
+print('Yooooo')

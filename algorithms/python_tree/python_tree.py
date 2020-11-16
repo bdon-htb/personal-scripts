@@ -94,7 +94,7 @@ class Node:
         return n in self.next
 
     def __str__(self):
-        return f'{self.name} -> {self.content}'
+        return f'{self.name} -> \n{self.content}'
 
     def is_endpoint(self) -> bool:
         return len(self.next) == 0
@@ -220,7 +220,7 @@ def make_file_tree(filename: str) -> 'FileTree':
         tree.insert(url, code_lines) # Insert any leftover code.
     return tree
 if __name__ == '__main__':
-    filename = 'test_code.py'
+    filename = 'widgets.py'
     t = make_file_tree(filename)
     t.pretty_print()
     # print(t.get_content(filename))

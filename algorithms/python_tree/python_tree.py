@@ -180,48 +180,6 @@ def update_line_data(indent: int) -> Tuple[str, int]:
     """
     return '', indent
 
-'''
-def make_file_tree(filename: str) -> 'FileTree':
-    """Create a CodeTree from a python file.
-    """
-    url = filename
-    tree = CodeTree(url)
-    have_default = False # Flag for getting the default implementation.
-    default_indent = 0
-    last_indent = 0 # Keep track of previous line's indentation.
-    code_lines = '' # Hold on to all the code belong to the current block.
-    current_block = '' # The name of the current block
-
-    with open(filename, 'r') as f:
-        for line in f:
-            line = line.rstrip() # Remove any escape characters.
-            indent = indent_len(line) # Get the current line's indentation.
-            if is_code(line):
-                # Get the file's indentation spacing if we don't have it yet.
-                if indent != 0 and not have_default:
-                    default_indent = indent
-                    have_default = True
-
-                if is_block(line): # If line is a block; function or class declaration.
-                    tree.insert(url, code_lines) # Insert the previous block's code.
-                    current_block = get_block_name(line)
-                    url = update_url(url, current_block, indent, last_indent) # Update the url to the current block's
-                    code_lines, last_indent = update_line_data(indent) # Empty code_lines and update indentation.
-
-                else: # Else; line is just regular code.
-                    if indent < last_indent: # Indentation moved up, which means the url should update.
-                        tree.insert(url, code_lines) # Insert the previous block's code.
-                        code_lines, last_indent = update_line_data(indent) # Empty code_lines and update indentation.
-                        level = ((last_indent - indent) // default_indent) # Calculate the number of indentation 'levels' it went up
-                        url = trim_url(url, level * 2) # Trim the url.
-                        current_block = url.split('/')[-1] # Set the current block to be the new endpoint.
-
-                    code_lines += line + '\n' # Add line of code to current blocks.
-
-        tree.insert(url, code_lines) # Insert any leftover code.
-    return tree
-'''
-
 def make_file_tree(filename: str) -> 'FileTree':
     """Create a CodeTree from a python file.
     """

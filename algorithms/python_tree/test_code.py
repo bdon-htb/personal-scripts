@@ -8,4 +8,5 @@ class M:
     def argh(self):
         print('Argh!')
 
+# Make sure to read these too.
 print('Yooooo')

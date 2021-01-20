@@ -71,9 +71,11 @@ class CodeTreeNode:
             next_node.insert(url[1:], item)
 
     def pretty_print(self, depth=0):
+        if not self.name.endswith('.py'):
+            print(self.fullname, end='')
+
         for c in self.content:
             if isinstance(c, CodeTreeNode):
-                print(c.fullname, end='')
                 c.pretty_print(depth + 1)
             else:
                 print(c, end='')
@@ -154,4 +156,6 @@ def make_code_tree(filename: str) -> 'CodeTreeNode':
 if __name__ == '__main__':
     filename = 'test_code.py'
     t = make_code_tree(filename)
+    m_node = t.get_node(['test_code.py', 'M'])
     t.pretty_print()
+    # m_node.pretty_print()

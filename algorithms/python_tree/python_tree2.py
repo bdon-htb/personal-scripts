@@ -1,21 +1,14 @@
 # The last python_tree implementation was pretty lossy and didn't properly account for content spread out across the file.
-from typing import List
+from typing import List, Union
 
 class CodeTreeNode:
     """A hierarchical recursive tree structure for python code.
     """
     def __init__(self, code_block: str):
         self.fullname = code_block # line of code (with whitespace) that defines the code block the node represent
-        self.name = self._clean_block_name(code_block)
+        self.name = get_block_name(code_block)
         self.content = [] # A sequential arrangement of the node's content
         self.nodes = {} # Hashmap for quick access to child nodes.
-
-    def _clean_block_name(self, code_block: str) -> str:
-        """Returns copy of code_block without whitespace and class / function definition
-        """
-        if '#' in code_block: # Code block contains comment for some reason.
-            code_block = code_block[:code_block.find('#')] # Remove comment
-        return code_block.replace('class','').replace('def','').replace(':','').strip()
 
     def get_name(self) -> str:
         return self.name
@@ -42,7 +35,7 @@ class CodeTreeNode:
         else: # Assume c is a string.
             self.content.append(c)
 
-    def get_node(self, url: str):
+    def get_node(self, url: str) -> Union[CodeTreeNode, None]:
         """Get the node at the given url endpoint. If the endpoint
         doesn't exist return None
 
@@ -63,8 +56,8 @@ class CodeTreeNode:
 
         Precondition: all nodes in url already exist.
 
-        Because this tree is designed to be lossless, cannot create nodes automatically
-        without their fullname
+        Because this tree is designed to be lossless, cannot create missing
+        nodes automatically without their fullname
         """
         url = url.split('/')
         if len(url) == 1 and self.name == url[0]: # At endpoint
@@ -78,25 +71,52 @@ class CodeTreeNode:
             url = '/'.join(url[1:]) # Trim front of list and convert back to string.
             next_node.insert(url, item)
 
+def get_block_name(s: str) -> str:
+    """Get the name of function / class
+    Precondition: s is non-empty and is a valid block.
+    """
+    definition = s.strip()
+    if '(' in s:
+        definition = definition.split('(')[0]
+    else:
+        definition = s.split(':')[0]
+    return definition.replace('def', '').replace('class', '').strip()
+
+def is_block(s: str) -> str:
+    """Return whether s is a class or function definition
+    Precondition: Python syntax is correct (won't check for colon : )
+    """
+    s = s.lstrip()
+    return s.startswith('def ') or s.startswith('class ')
+
+def indent_len(s: str) -> int:
+    """Get the size of the string's indentation.
+    """
+    return len(s) - len(s.lstrip())
+
+# TODO: implement
+def update_url(indent, last_indent, indent_spacing):
+    pass
+
 # TODO: Implement.
+# TODO: Add some logging so it's easier to trace.
 def make_code_tree(filename: str) -> CodeTreeNode:
     """Create a CodeTree from a python file.
 
-    Precondition: file is a valid python file without errors.
+    Precondition: file is a valid python file without errors or duplicates blocks.
     """
     url = filename
     tree = CodeTreeNode(url)
-    last_indent = 0
-    indent_spacing = 0
+    indent = 0 # Current line's leading whitespace
+    last_indent = 0 # Last line's leading whitespace
+    indent_spacing = None # The number of spaces per indentation level
     with open(filename, 'r') as f:
         for line in f:
-            pass
-    return tree
+            url = update_url(url)
+            if is_block(line):
+                new_node = CodeTreeNode(line) # Create new node from code
+                tree.insert(url, new_node)
+            else: # Is regular line of code.
+                tree.insert(url, line) # Insert code
 
-t = CodeTreeNode('file.py')
-t.insert('file.py', 'x = y')
-t.insert('file.py', CodeTreeNode('def test:'))
-t.insert('file.py/test', 'y = 2')
-print(t.get_node('file.py/test').get_content())
-print(t.get_content())
-t.insert('file.py/Eman', 'y = 2')
+    return tree

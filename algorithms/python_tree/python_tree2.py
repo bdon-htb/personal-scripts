@@ -70,7 +70,29 @@ class CodeTreeNode:
 
             next_node.insert(url[1:], item)
 
+    def stringify(self) -> str:
+        """Return the source code of the node and its children.
+        """
+        return self._get_content_string(0, '')
+
+    def _get_content_string(self, depth, s) -> str:
+        """Recursively build the source code from the current node and its
+        children.
+        """
+        if not self.name.endswith('.py'):
+            s += self.fullname
+
+        for c in self.content:
+            if isinstance(c, CodeTreeNode):
+                s = c._get_content_string(depth + 1, s)
+            else:
+                s += c
+        return s
+
     def pretty_print(self, depth=0):
+        """Recursively print the source code of the current node and its
+        children.
+        """
         if not self.name.endswith('.py'):
             print(self.fullname, end='')
 
@@ -114,8 +136,6 @@ def indent_len(s: str) -> int:
     """
     return len(s) - len(s.lstrip())
 
-# TODO: Implement.
-# TODO: Add some logging so it's easier to trace.
 def make_code_tree(filename: str) -> 'CodeTreeNode':
     """Create a CodeTree from a python file.
 
@@ -144,7 +164,10 @@ def make_code_tree(filename: str) -> 'CodeTreeNode':
                 elif indent < last_block_indent:
                     # By this point indent_spacing should not be None
                     n = (last_block_indent - indent) // indent_spacing # Calculate level.
-                    url = url[:-(n+1)] # Go up url by n + 1 levels.
+                    url = url[:-(n + 1)] # Go up url by n levels.
+
+                    if is_block(line):
+                        url.append(get_block_name(line)) # Add endpoint.
 
             if is_block(line):
                 last_block_indent = indent
@@ -154,8 +177,10 @@ def make_code_tree(filename: str) -> 'CodeTreeNode':
     return tree
 
 if __name__ == '__main__':
-    filename = 'test_code.py'
+    filename = 'GeneralStates.py'
     t = make_code_tree(filename)
-    m_node = t.get_node(['test_code.py', 'M'])
-    t.pretty_print()
+    # m_node = t.get_node(['GeneralStates.py', 'M'])
+    # t.pretty_print()
+    s = t.stringify()
+    print(s)
     # m_node.pretty_print()

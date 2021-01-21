@@ -11,5 +11,8 @@ class M:
         def test(self):
             pass
 
+class O:
+    pass
+    
 # Make sure to read these too.
 print('Yooooo')

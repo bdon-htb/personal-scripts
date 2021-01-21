@@ -171,10 +171,7 @@ def make_code_tree(filename: str) -> 'CodeTreeNode':
     return tree
 
 if __name__ == '__main__':
-    filename = 'GeneralStates.py'
+    filename = 'test_code.py'
     t = make_code_tree(filename)
-    m_node = t.get_node(['GeneralStates.py', 'MinimapState'])
-    # t.pretty_print()
-    # s = t.stringify()
-    # print(s)
-    m_node.pretty_print()
+    s = t.stringify()
+    print(s)
